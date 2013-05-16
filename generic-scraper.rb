@@ -2,9 +2,7 @@ require 'nokogiri'
 require 'open-uri'
 
 # searches links for contact links and grabs emails from the links
-def find_contact_link(link)
-  puts link
-
+def scrape_link_for_emails(link)
   # grabs emails on the current page
   emails = get_emails_from_link(link)
 
@@ -16,12 +14,13 @@ def find_contact_link(link)
 
   website_link = get_website_link_from_link link
   unless website_link.nil?
-    emails += find_contact_link website_link
+    emails += scrape_link_for_emails website_link
   end
   emails
 end
 
 
+# searches for a contact link and grabs emails from there
 def get_emails_from_contact_link(link)
   emails = []
   begin
@@ -41,10 +40,10 @@ end
 
 # grabs all emails on a specific page
 def get_emails_from_link(link)
+  puts 'scraping link: ' + link.to_s
   emails = []
   begin
     doc = Nokogiri::HTML(open(link))
-    puts link
     string = doc.xpath("//text()").to_s
     emails = extract_emails_to_array string
   rescue StandardError => e
@@ -60,7 +59,6 @@ end
 
 
 def get_website_link_from_link(link)
-  puts link
 
   begin
     doc = Nokogiri::HTML(open(link))
@@ -77,12 +75,12 @@ end
 
 list_link = 'http://www.clmp.org/directory/'
 #list_link = 'http://www.failbetter.com/Links.php'
+
 doc = Nokogiri::HTML(open(list_link))
 doc.css("a").each do |a|
   name = a.text
-  all_emails = find_contact_link URI.join(list_link, a['href'])
+  all_emails = scrape_link_for_emails URI.join(list_link, a['href'])
   all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
-#
 end
 
 
