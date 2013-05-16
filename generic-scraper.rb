@@ -3,23 +3,44 @@ require 'open-uri'
 
 # searches links for contact links and grabs emails from the links
 def find_contact_link(link)
+  puts link
+
+  # grabs emails on the current page
+  emails = get_emails_from_link(link)
+
+  # grabs emails from contact/about links
+  emails += get_emails_from_contact_link link
+
+  # checks if page has a website field. if so, does the search
+  # on that page
+
+  website_link = get_website_link_from_link link
+  unless website_link.nil?
+    emails += find_contact_link website_link
+  end
+  emails
+end
+
+
+def get_emails_from_contact_link(link)
   emails = []
   begin
     doc = Nokogiri::HTML(open(link))
     doc.css("a").each do |a|
       if a.text.downcase.include? 'contact' \
         or a.text.downcase.include? 'about'
-          emails = get_email_from_link(URI.join(args[:link], a['href']))
+          emails = get_emails_from_link URI.join(link, a['href'])
       end
     end
   rescue StandardError => e
+    puts e
   end
   emails
 end
 
 
 # grabs all emails on a specific page
-def get_email_from_link(link)
+def get_emails_from_link(link)
   emails = []
   begin
     doc = Nokogiri::HTML(open(link))
@@ -27,7 +48,7 @@ def get_email_from_link(link)
     string = doc.xpath("//text()").to_s
     emails = extract_emails_to_array string
   rescue StandardError => e
-    error = true
+    puts e
   end
   emails
 end
@@ -40,10 +61,18 @@ end
 
 def get_website_link_from_link(link)
   puts link
-  doc = Nokogiri::HTML(open(link))
-  doc.css('label').each { |label|
-    puts label.text if label.text.downcase.include? 'web site'
-  }
+
+  begin
+    doc = Nokogiri::HTML(open(link))
+    doc.css('label').each { |label|
+      if label.text.downcase.include? 'web site'
+        return label.parent.css('a').first['href']
+      end
+    }
+  rescue StandardError => e
+    puts e
+  end
+  nil
 end
 
 list_link = 'http://www.clmp.org/directory/'
@@ -51,13 +80,8 @@ list_link = 'http://www.clmp.org/directory/'
 doc = Nokogiri::HTML(open(list_link))
 doc.css("a").each do |a|
   name = a.text
-  get_website_link_from_link URI.join(list_link, a['href'])
-
-#
-#  emails_on_page = get_email_from_link URI.join(list_link, a['href'])
-#  emails_from_contact_pages = find_contact_link :link =>a['href']
-#  all_emails = emails_on_page + emails_from_contact_pages
-#  all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
+  all_emails = find_contact_link URI.join(list_link, a['href'])
+  all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
 #
 end
 
