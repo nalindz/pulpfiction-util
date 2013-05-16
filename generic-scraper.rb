@@ -3,10 +3,14 @@ require 'open-uri'
 
 # searches links for contact links and grabs emails from the links
 def scrape_link_for_emails(link)
+
+  # checks if link is an email address
+  # check_mailto(link)
+
   # grabs emails on the current page
   emails = get_emails_from_link(link)
 
-  # grabs emails from contact/about links
+  # grabs emails from contact/about/email links
   emails += get_emails_from_contact_link link
 
   # checks if page has a website field. if so, does the search
@@ -25,7 +29,7 @@ def get_emails_from_contact_link(link)
   emails = []
   begin
     doc = Nokogiri::HTML(open(link))
-    doc.css("a").each do |a|
+    doc.css('a').each do |a|
       if a.text.downcase.include? 'contact' \
         or a.text.downcase.include? 'about'
           emails = get_emails_from_link URI.join(link, a['href'])
@@ -46,6 +50,15 @@ def get_emails_from_link(link)
     doc = Nokogiri::HTML(open(link))
     string = doc.xpath("//text()").to_s
     emails = extract_emails_to_array string
+
+    # check all links on page for mailto emails
+    doc.css('a').each do |a|
+      if a['href'].to_s.include?('mailto')
+        address = a['href'].split(':')[1]
+        emails << address
+      end
+    end
+
   rescue StandardError => e
     puts e
   end
@@ -73,8 +86,9 @@ def get_website_link_from_link(link)
   nil
 end
 
-list_link = 'http://www.clmp.org/directory/'
-#list_link = 'http://www.failbetter.com/Links.php'
+# list_link = 'http://www.clmp.org/directory/'
+list_link = 'http://www.failbetter.com/Links.php'
+# list_link = 'http://www.identitytheory.com/'
 
 doc = Nokogiri::HTML(open(list_link))
 doc.css("a").each do |a|
