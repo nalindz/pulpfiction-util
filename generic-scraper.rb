@@ -90,11 +90,20 @@ end
 list_link = 'http://www.failbetter.com/Links.php'
 # list_link = 'http://www.identitytheory.com/'
 
+unable_to_scrape_links = []
 doc = Nokogiri::HTML(open(list_link))
+i = 0
 doc.css("a").each do |a|
   name = a.text
   all_emails = scrape_link_for_emails URI.join(list_link, a['href'])
-  all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
+  if all_emails.empty?
+    unable_to_scrape_links << "#{a['href']}, #{name}"
+  else
+    all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
+  end
+  i += 1
+  break if i == 40
 end
 
-
+unable_to_scrape_links_file = File.open('unable_to_parse.txt', 'a')
+unable_to_scrape_links.each { |line| unable_to_scrape_links_file.puts line }
