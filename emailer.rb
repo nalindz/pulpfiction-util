@@ -7,8 +7,9 @@ require 'open-uri'
 require 'uri'
 
 
-$your_name = "Nalin"
-$from_address = "Nalin <nalin@pulpfictionapp.com>"
+$your_name = "Azhar"
+$from_address = "Azhar <azhar@pulpfictionapp.com>"
+$test_email_to = "azmanian.devil@gmail.com"
 
 options = { :address              => "smtp.gmail.com",
             :port                 => 587,
@@ -24,8 +25,11 @@ end
 
 
 def send_mail(args = {})
-  return if has_email_been_messaged? args[:to_address]
-  insert_email(args[:to_address])
+
+  if (ARGV[1] != 'test')
+    return if has_email_been_messaged? args[:to_address]
+    insert_email(args[:to_address]) 
+  end
 
   text_body = "Hi!
 
@@ -33,19 +37,23 @@ My name is #{$your_name} and I'm part of and team that's developing Pulp Fiction
 
 We’re really excited about this since we feel that this is the next step in bringing works of fiction to a new audience. Art such as music and photography are easily shared and discovered by people online, so why not fiction?
 
-I was wondering if #{args[:magazine_name]} would be interested in sharing some work and being amongst the first content on our platform. We see this as similar to music artists having their own YouTube channel. It could give #{args[:magazine_name]} some new exposure and showcase some of the content that's been published on it. I’d also love to hear if you have any questions/comments about the platform. For more information, feel free to checkout our website at http://www.pulpfictionapp.com
+I was wondering if #{args[:magazine_name]} would be interested in sharing some work and being amongst the first content on our platform. We see this as similar to music artists having their own YouTube channel. It could give #{args[:magazine_name]} some new exposure and showcase some of the content that's been published on it. 
 
-You can check out a quick demo of the app (currently for iPad) below here:
-https://www.youtube.com/watch?v=zwJeCijimv4&hd=1
+You can check out a quick demo of the app (currently for iPad) here: https://www.youtube.com/watch?v=zwJeCijimv4&hd=1
+
+I’d also love to hear if you have any questions/comments about the platform. For more information, please visit our website at http://www.pulpfictionapp.com
 
 
 Thanks!
-#{$your_name}"
+#{$your_name}" 
 
   mail = Mail.new do
     from $from_address
-    to args[:to_address]
-#    to "nalindz@gmail.com"
+    if (ARGV[1] == 'test')
+      to $test_email_to
+    else
+      to args[:to_address]
+    end
     subject "Pulp Fiction"
     text_part do
       body text_body
@@ -54,7 +62,11 @@ Thanks!
 
 #  puts mail
   mail.deliver!
-  puts "email sent to: #{args[:to_address]}"
+  if (ARGV[1] == 'test')
+    puts puts "test email for #{args[:magazine_name]} sent to: #{$test_email_to}"
+  else
+    puts "email sent to: #{args[:to_address]}"
+  end
 end
 
 def init_db

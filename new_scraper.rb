@@ -62,6 +62,7 @@ list_link = 'http://www.failbetter.com/Links.php'
 # list_link = 'http://www.identitytheory.com/'
 
 links_hash = Hash.new ""
+links_hash_copy = Hash.new "www.default.com"
 
 begin
   doc = Nokogiri::HTML(open(list_link))
@@ -75,7 +76,6 @@ rescue StandardError => e
 end
 
 links_hash_copy = links_hash
-puts JSON.pretty_generate(links_hash_copy)
 # CSV.open("links_names.csv", "wb") do |csv|
 #   links_hash_copy.to_a.each do |link|
 #     csv << link
@@ -86,18 +86,21 @@ links_hash_copy.each do |name, url|
   links_hash[name] = scrape_link_for_emails URI.join(list_link, url)
 end
 
-CSV.open("emails.csv", "wb") do |csv|
-  CSV.open("no_emails.csv", "wb") do |ncsv|
-    links_hash.each do |key, value|
-      if value.empty?
-        puts key
-        ncsv << [key, links_hash_copy[key]]
-      else
-        csv << [value, key]
-      end
-    end
-  end
-end
+puts JSON.pretty_generate(links_hash_copy)
+puts JSON.pretty_generate(links_hash)
+
+# CSV.open("emails.csv", "wb") do |csv|
+#   CSV.open("no_emails.csv", "wb") do |ncsv|
+#     links_hash.each do |key, value|
+#       if value.empty?
+#         puts key
+#         ncsv << [key, links_hash_copy[key]]
+#       else
+#         csv << [value, key]
+#       end
+#     end
+#   end
+# end
 
 
   # links_hash.to_a.each do |email|
