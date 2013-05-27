@@ -87,10 +87,12 @@ def get_website_link_from_link(link)
 end
 
 # list_link = 'http://www.clmp.org/directory/'
-list_link = 'http://www.failbetter.com/Links.php'
+list_link = 'http://www.bigbridge.org/links.htm'
 # list_link = 'http://www.identitytheory.com/'
 
 unable_to_scrape_links = []
+all_emails = []
+emails_file = File.open("emails.txt", "w")
 doc = Nokogiri::HTML(open(list_link))
 i = 0
 doc.css("a").each do |a|
@@ -99,10 +101,11 @@ doc.css("a").each do |a|
   if all_emails.empty?
     unable_to_scrape_links << "#{a['href']}, #{name}"
   else
-    all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
+    # all_emails.each { |email| puts "#{name}, #{email}" } unless all_emails.empty?
+    all_emails.each { |email| emails_file.puts "#{email}, #{name}" } unless all_emails.empty?
   end
   i += 1
-  break if i == 40
+  break if i == 140
 end
 
 unable_to_scrape_links_file = File.open('unable_to_parse.txt', 'a')
